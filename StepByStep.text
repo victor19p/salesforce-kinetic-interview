@@ -63,3 +63,9 @@ solution can scale, be tested, and deployed.
 10. create LeadAuditTriggerHandler
 
 11. create LeadAuditTrigger
+
+12. create metadata
+
+13. create record types for audit
+
+14. create auditService class

@@ -19,12 +19,30 @@
 
 public with sharing class AuditService {
     /**
+     * Returns a map of Audit__c record type developer names to their Ids.
+     */
+    private Map<String, Id> getAuditRecordTypeIds() {
+        Map<String, Id> auditRecordTypeIds = new Map<String, Id>();
+        if (!Schema.sObjectType.RecordType.isAccessible()) {
+            System.debug(LoggingLevel.ERROR, 'User does not have access to RecordType.');
+            return auditRecordTypeIds;
+        }
+        for (RecordType rt : [SELECT Id, DeveloperName FROM RecordType WHERE SObjectType = 'Audit__c' AND DeveloperName IN ('Lead_Audit', 'Opportunity_Audit')]) {
+            auditRecordTypeIds.put(rt.DeveloperName, rt.Id);
+        }
+        return auditRecordTypeIds;
+    }
+    /**
      * Recupera el registro de configuración desde metadata.
      * @param objectType 'Opportunity' o 'Lead'
      * @param stageOrStatus Valor del StageName (Opportunity) o Status (Lead)
      */
     private AuditConfig__mdt getAuditConfig(String objectType, String stageOrStatus) {
-        List<AuditConfig__mdt> configs;
+        List<AuditConfig__mdt> configs = new List<AuditConfig__mdt>();
+        if (!Schema.sObjectType.AuditConfig__mdt.isAccessible()) {
+            System.debug(LoggingLevel.ERROR, 'User does not have read access to AuditConfig__mdt.');
+            return null;
+        }
         if (objectType == 'Opportunity') {
             configs = [SELECT Id, AuditType__c, ExpectedAuditDays__c 
                         FROM AuditConfig__mdt 
@@ -46,14 +64,19 @@ public with sharing class AuditService {
         }
         try {
             insert auditsToInsert;
-            System.debug(LoggingLevel.INFO, 'Audits created: ' + JSON.serializePretty(auditsToInsert));
+            // System.debug(LoggingLevel.INFO, 'Audits created: ' + JSON.serializePretty(auditsToInsert));
         } catch (Exception e) {
+            System.debug(LoggingLevel.ERROR, 'auditsToInsert: ' + JSON.serializePretty(auditsToInsert));
             System.debug(LoggingLevel.ERROR, 'Error inserting audits: ' + e.getMessage());
         }
     }
 
     public void detectFieldChangeAndAudit(Map<Id, SObject> newRecordsMap, Map<Id, SObject> oldRecordsMap, String fieldName, String objectType) {
         List<Audit__c> auditsToInsert = new List<Audit__c>();
+        Map<String, Id> auditRecordTypeIds = getAuditRecordTypeIds();
+        Id opportunityAuditRtId = auditRecordTypeIds.get('Opportunity_Audit');
+        Id leadAuditRtId = auditRecordTypeIds.get('Lead_Audit');
+
         for (SObject newRecord : newRecordsMap.values()) {
             SObject oldRecord = oldRecordsMap != null ? oldRecordsMap.get((Id)newRecord.get('Id')) : null;
             if (oldRecord != null) {
@@ -73,9 +96,11 @@ public with sharing class AuditService {
                     if (objectType == 'Opportunity') {
                         audit.Parent_Opportunity__c = (Id)newRecord.get('Id');
                         audit.Opportunity_Stage__c = String.valueOf(newValue);
+                        audit.RecordTypeId = opportunityAuditRtId;
                     } else if (objectType == 'Lead') {
                         audit.Parent_Lead__c = (Id)newRecord.get('Id');
                         audit.Lead_Status__c = String.valueOf(newValue);
+                        audit.RecordTypeId = leadAuditRtId;
                     }
                     auditsToInsert.add(audit);
                 }
@@ -85,6 +110,8 @@ public with sharing class AuditService {
     }
 
     public void createAuditForOpportunity(Map<Id, Opportunity> newRecordsMap, Map<Id, Opportunity> oldRecordsMap, String context) {
+        Map<String, Id> auditRecordTypeIds = getAuditRecordTypeIds();
+        Id opportunityAuditRtId = auditRecordTypeIds.get('Opportunity_Audit');
         switch on context {
             when 'AFTER_INSERT' {
                 System.debug(LoggingLevel.INFO, 'AuditService - Creating audit for Opportunity insert context: ' + context);
@@ -99,6 +126,7 @@ public with sharing class AuditService {
                         audit.Audity_Type__c = config.AuditType__c;
                         audit.Expected_Audit_Date__c = Date.today().addDays((Integer)config.ExpectedAuditDays__c);
                         audit.Audit_Status__c = 'Draft';
+                        audit.RecordTypeId = opportunityAuditRtId;
                         auditsToInsert.add(audit);
                     }
                 }
@@ -112,6 +140,8 @@ public with sharing class AuditService {
     }
 
     public void createAuditForLead(Map<Id, Lead> newRecordsMap, Map<Id, Lead> oldRecordsMap, String context) {
+        Map<String, Id> auditRecordTypeIds = getAuditRecordTypeIds();
+        Id leadAuditRtId = auditRecordTypeIds.get('Lead_Audit');
         switch on context {
             when 'AFTER_INSERT' {
                 System.debug(LoggingLevel.INFO, 'AuditService - Creating audit for Lead insert context: ' + context);
@@ -126,6 +156,7 @@ public with sharing class AuditService {
                         audit.Audity_Type__c = config.AuditType__c;
                         audit.Expected_Audit_Date__c = Date.today().addDays((Integer)config.ExpectedAuditDays__c);
                         audit.Audit_Status__c = 'Draft';
+                        audit.RecordTypeId = leadAuditRtId;
                         auditsToInsert.add(audit);
                     }
                 }
