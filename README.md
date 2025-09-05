@@ -16,23 +16,28 @@ The system will support automation, alerting, and future expansion to new sales 
 | Parent_Type__c              | Picklist                    | Parent object type (Lead, Opportunity, Quote, Order, etc.) |
 | Parent_Lead__c              | Lookup (Lead)               | Reference to Lead (if Parent_Type__c = Lead) |
 | Parent_Opportunity__c       | Lookup (Opportunity)        | Reference to Opportunity (if Parent_Type__c = Opportunity) |
-| Parent_Quote__c             | Lookup (Quote)              | Reference to Quote (if Parent_Type__c = Quote) |
-| Parent_Order__c             | Lookup (Order)              | Reference to Order (if Parent_Type__c = Order) |
 | Audit_Status__c             | Picklist                    | Audit status (Draft, In Progress, Completed, Overdue, Cancelled) |
 | Audit_Type__c               | Picklist                    | Audit type (Pre-Sale, During-Sale, Post-Sale, etc.) |
 | Expected_Audit_Date__c      | Date                        | Planned date for the audit |
 | Actual_Audit_Date__c        | Date                        | Date the audit was performed |
 | Comments__c                 | Long Text                   | Notes and observations |
 | Overdue__c                  | Formula/Checkbox            | Indicates if the audit is overdue |
-| Changed_By__c               | Lookup (User)               | Last user to edit the record |
 | Original_Owner__c           | Lookup (User)               | Original owner of the parent record |
-| Files/Attachments           | Salesforce Files/Attachments| Supporting documents (optional) |
 
-#### **Contact Involvement**
-- Optionally, create a junction object (e.g., Audit_Contact__c) to relate Contacts to audits:
-  - Audit__c (Lookup)
-  - Contact__c (Lookup)
-  - Role__c (Picklist: Auditor, Stakeholder, Client, etc.)
+---
+
+### **Junction Object: AuditParticipant__c**
+
+| Field Name           | Data Type                 | Description                                             |
+|----------------------|--------------------------|---------------------------------------------------------|
+| Audit__c             | Lookup (Audit__c)        | Reference to the Audit record                           |
+| Contact__c           | Lookup (Contact)         | Reference to the Contact (external participant)         |
+| User__c              | Lookup (User)            | Reference to the User (internal participant)            |
+| Role__c              | Picklist                 | Role in the audit (Auditor, Stakeholder, Client, etc.)  |
+| Comments__c          | Long Text                | Optional notes                                          |
+
+**Validation Rule:**  
+Require that either `User__c` or `Contact__c` is populated, but not both.
 
 ---
 
@@ -40,13 +45,13 @@ The system will support automation, alerting, and future expansion to new sales 
 
 ### **A. Record-Triggered Flow (Base Option)**
 - Configure a Flow triggered by status/stage changes in Lead, Opportunity, Quote, or Order.
-- Flow creates an Audit__c record, populates Parent_Type, fills the correct lookup, and associates contacts.
+- Flow creates an Audit__c record, populates Parent_Type, fills the correct lookup, and associates participants via AuditParticipant__c.
 - **Pros:** Admin-friendly, quick to deploy.
 - **Cons:** Limited for complex bulk operations or advanced logic.
 
 ### **B. Apex Trigger + Handler Framework (Recommended)**
 - Develop Apex triggers on relevant objects (Lead, Opportunity, etc.) for key field changes.
-- Handler logic processes events, creates Audit__c records, populates fields, links contacts.
+- Handler logic processes events, creates Audit__c records, populates fields, links participants.
 - **Pros:** High scalability and flexibility, robust error handling.
 - **Cons:** Requires development and testing.
 
@@ -64,7 +69,7 @@ The system will support automation, alerting, and future expansion to new sales 
 ## 5. Implementation Steps
 
 1. **Design and create the generic Audit__c object and fields.**
-2. **Create the Audit_Contact__c junction object (optional but recommended).**
+2. **Create the AuditParticipant__c junction object with validation rule.**
 3. **Build automation:**
    - Implement Record-Triggered Flows and/or Apex Trigger logic.
    - Ensure logic supports multiple parent types.
@@ -83,6 +88,6 @@ The system will support automation, alerting, and future expansion to new sales 
 
 ## 6. Scalability & Future-Proofing
 
-- Easily extend to new Salesforce objects (Cases, custom sales objects) by adding new Parent_Type values and lookups.
+- Easily extend to new Salesforce objects (Quotes, Orders, Cases, custom sales objects) by adding new Parent_Type values and lookups.
 - Centralized reporting and logic ensure long-term maintainability.
 - Periodic review and improvement based on business evolution.

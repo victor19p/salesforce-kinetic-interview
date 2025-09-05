@@ -1,0 +1,26 @@
+1. solicitar dev org
+2. update page layout
+3. add trigger framework
+4. add test class for framework
+5. create Audit object
+ fields:
+    Parent_Type__c	Picklist	Parent object type (Lead, Opportunity, Quote, Order, etc.)
+    Parent_Lead__c	Lookup (Lead)	Reference to Lead (if Parent_Type__c = Lead)
+    Parent_Opportunity__c	Lookup (Opportunity)	Reference to Opportunity (if Parent_Type__c = Opportunity)
+    Audit_Status__c	Picklist	Audit status (Draft, In Progress, Completed, Overdue, Cancelled)
+    Audit_Type__c	Picklist	Audit type (Pre-Sale, During-Sale, Post-Sale, etc.)
+    Expected_Audit_Date__c	Date	Planned date for the audit
+    Actual_Audit_Date__c	Date	Date the audit was performed
+    Comments__c	Long Text	Notes and observations
+    Overdue__c	Formula/Checkbox	Indicates if the audit is overdue
+    Original_Owner__c	Lookup (User)	Original owner of the parent record
+
+6. create audit participant record
+ fields:
+    Audit__c	Lookup (Audit)	Reference to the Audit record
+    Contact__c	Lookup (Contact)	Reference to the Contact (external participant)
+    User__c	Lookup (User)	Reference to the User (internal participant)
+    Role__c	Picklist	Role in the audit (Auditor, Stakeholder, Client, etc.)
+    Comments__c	Long Text	Optional notes
+
+7. review page layouts of the new objects
