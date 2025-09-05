@@ -6,12 +6,10 @@
  * !notes:
  * ? Consider the audit object on record types for Lead and Opportunity.
  * ? Consider managing Record Types for Audit__c, dividing by related object (Lead, Opportunity, etc.) for layout and process flexibility.
- * ? Consider use metadata to manage the expected audit days based on criteria.
  * ? Use schedule and batch to manage the alerts.
  * ? Consider managing Record Types for AuditParticipant__c (to support multiple participant profiles, e.g. Internal Auditor, External Client, Manager, etc.).
  * 
  * TODO
- * - Move audit config (stages, statuses, expected days) to Custom Metadata for admin flexibility.
  * - Add unit tests for service and handlers to ensure reliability as requirements evolve.
  * - Document trigger logic and service methods for future maintainers.
  * - Apply record type logic for AuditParticipant__c, assigning appropriate type based on context or participant role.
@@ -20,22 +18,26 @@
  */
 
 public with sharing class AuditService {
-    //! Consider move this to metadata, for fast updates without code changes
-    Set<String> oppAuditStages = new Set<String>{
-        'Qualification',
-        'Proposal/Price Quote',
-        'Negotiation/Review',
-        'Closed Won',
-        'Closed Lost'
-    };
-    Set<String> oppClosedStages = new Set<String>{
-        'Closed Won',
-        'Closed Lost'
-    };
-    Set<String> leadAuditStatuses = new Set<String>{
-        'Working - Contacted',
-        'Closed - Not Converted'
-    };
+    /**
+     * Recupera el registro de configuración desde metadata.
+     * @param objectType 'Opportunity' o 'Lead'
+     * @param stageOrStatus Valor del StageName (Opportunity) o Status (Lead)
+     */
+    private AuditConfig__mdt getAuditConfig(String objectType, String stageOrStatus) {
+        List<AuditConfig__mdt> configs;
+        if (objectType == 'Opportunity') {
+            configs = [SELECT Id, AuditType__c, ExpectedAuditDays__c 
+                        FROM AuditConfig__mdt 
+                        WHERE ObjectType__c = :objectType AND Stage__c = :stageOrStatus AND IsActive__c = true
+                        LIMIT 1];
+        } else if (objectType == 'Lead') {
+            configs = [SELECT Id, AuditType__c, ExpectedAuditDays__c 
+                        FROM AuditConfig__mdt 
+                        WHERE ObjectType__c = :objectType AND Status__c = :stageOrStatus AND IsActive__c = true
+                        LIMIT 1];
+        }
+        return configs.isEmpty() ? null : configs[0];
+    }
 
     private void insertAudits(List<Audit__c> auditsToInsert) {
         if (!Schema.sObjectType.Audit__c.isCreateable()) {
@@ -58,29 +60,22 @@ public with sharing class AuditService {
                 Object newValue = newRecord.get(fieldName);
                 Object oldValue = oldRecord.get(fieldName);
 
-                Boolean shouldAudit = false;
-                String auditType;
-
-                if (objectType == 'Opportunity' && oppAuditStages.contains(String.valueOf(newValue))) {
-                    shouldAudit = true;
-                    auditType = oppClosedStages.contains(String.valueOf(newValue)) ? 'Post-Sale' : 'During-Sale';
-                } else if (objectType == 'Lead' && leadAuditStatuses.contains(String.valueOf(newValue))) {
-                    shouldAudit = true;
-                    auditType = 'Pre-Sale';
-                }
-
-                if (shouldAudit && newValue != oldValue) {
+                // Consulta la configuración desde metadata
+                AuditConfig__mdt config = getAuditConfig(objectType, String.valueOf(newValue));
+                if (config != null && newValue != oldValue) {
                     Audit__c audit = new Audit__c();
                     audit.Parent_Type__c = objectType;
                     audit.Audit_Status__c = 'Draft';
-                    audit.Expected_Audit_Date__c = Date.today().addDays(7); // consider metadata for config
+                    audit.Expected_Audit_Date__c = Date.today().addDays((Integer)config.ExpectedAuditDays__c);
                     audit.Comments__c = objectType + ' ' + fieldName +
                         ' changed from "' + oldValue + '" to "' + newValue + '"';
-                    audit.Audity_Type__c = auditType;
+                    audit.Audity_Type__c = config.AuditType__c;
                     if (objectType == 'Opportunity') {
                         audit.Parent_Opportunity__c = (Id)newRecord.get('Id');
+                        audit.Opportunity_Stage__c = String.valueOf(newValue);
                     } else if (objectType == 'Lead') {
                         audit.Parent_Lead__c = (Id)newRecord.get('Id');
+                        audit.Lead_Status__c = String.valueOf(newValue);
                     }
                     auditsToInsert.add(audit);
                 }
@@ -95,25 +90,26 @@ public with sharing class AuditService {
                 System.debug(LoggingLevel.INFO, 'AuditService - Creating audit for Opportunity insert context: ' + context);
                 List<Audit__c> auditsToInsert = new List<Audit__c>();
                 for (Opportunity opp : newRecordsMap.values()) {
-                    Audit__c audit = new Audit__c();
-                    audit.Parent_Opportunity__c = opp.Id;
-                    audit.Parent_Type__c = 'Opportunity';
-                    audit.Audity_Type__c = 'During-Sale'; //conditional of the op StageName
-                    audit.Expected_Audit_Date__c = Date.today().addDays(7); //example logic
-                    audit.Audit_Status__c = 'Draft';
-                    auditsToInsert.add(audit);
+                    AuditConfig__mdt config = getAuditConfig('Opportunity', opp.StageName);
+                    if (config != null) {
+                        Audit__c audit = new Audit__c();
+                        audit.Parent_Opportunity__c = opp.Id;
+                        audit.Parent_Type__c = 'Opportunity';
+                        audit.Opportunity_Stage__c = opp.StageName;
+                        audit.Audity_Type__c = config.AuditType__c;
+                        audit.Expected_Audit_Date__c = Date.today().addDays((Integer)config.ExpectedAuditDays__c);
+                        audit.Audit_Status__c = 'Draft';
+                        auditsToInsert.add(audit);
+                    }
                 }
                 insertAudits(auditsToInsert);
             }
             when 'AFTER_UPDATE' {
                 System.debug(LoggingLevel.INFO, 'AuditService - Creating audit for Opportunity updates context: ' + context);
-                //TODO manage prior values vs new values if needed
-                // detectOpportunityStageChange(newRecordsMap, oldRecordsMap);
                 detectFieldChangeAndAudit(newRecordsMap, oldRecordsMap, 'StageName', 'Opportunity');
             }
         }
     }
-
 
     public void createAuditForLead(Map<Id, Lead> newRecordsMap, Map<Id, Lead> oldRecordsMap, String context) {
         switch on context {
@@ -121,20 +117,22 @@ public with sharing class AuditService {
                 System.debug(LoggingLevel.INFO, 'AuditService - Creating audit for Lead insert context: ' + context);
                 List<Audit__c> auditsToInsert = new List<Audit__c>();
                 for (Lead lead : newRecordsMap.values()) {
-                    Audit__c audit = new Audit__c();
-                    audit.Parent_Lead__c = lead.Id;
-                    audit.Parent_Type__c = 'Lead';
-                    audit.Audity_Type__c = 'Pre-Sale'; //conditional of the lead Status
-                    audit.Expected_Audit_Date__c = Date.today().addDays(7); //example logic
-                    audit.Audit_Status__c = 'Draft';
-                    auditsToInsert.add(audit);
+                    AuditConfig__mdt config = getAuditConfig('Lead', lead.Status);
+                    if (config != null) {
+                        Audit__c audit = new Audit__c();
+                        audit.Parent_Lead__c = lead.Id;
+                        audit.Parent_Type__c = 'Lead';
+                        audit.Lead_Status__c = lead.Status;
+                        audit.Audity_Type__c = config.AuditType__c;
+                        audit.Expected_Audit_Date__c = Date.today().addDays((Integer)config.ExpectedAuditDays__c);
+                        audit.Audit_Status__c = 'Draft';
+                        auditsToInsert.add(audit);
+                    }
                 }
                 insertAudits(auditsToInsert);
             }
             when 'AFTER_UPDATE' {
                 System.debug(LoggingLevel.INFO, 'AuditService - Creating audit for Lead updates context: ' + context);
-                //TODO manage prior values vs new values if needed
-                // detectLeadStageChange(newRecordsMap, oldRecordsMap);
                 detectFieldChangeAndAudit(newRecordsMap, oldRecordsMap, 'Status', 'Lead');
             }
         }

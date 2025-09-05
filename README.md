@@ -1,36 +1,23 @@
-# Action Plan: Scalable Audit Trail for Sales Process in Salesforce
+# Scalable Audit Trail for Sales Process in Salesforce
 
-## Current Implementation Progress
-
-- Custom objects `Audit__c` and `AuditParticipant__c` created with required fields and validation rule.
-- Apex Trigger Framework implemented for Opportunity and Lead using handler classes (`OpportunityAuditTriggerHandler`, `LeadAuditTriggerHandler`).
-- Centralized business logic in `AuditService` class, supporting both Opportunity and Lead audits.
-- Context managed via enum (`AuditContext`) for clarity and maintainability.
-- Bulk-safe DML and error handling implemented in service layer.
-- Ready for field comparison logic and further enhancements.
-
-### AuditService - Future Enhancements (*if time allows*)
-- *Consider the audit object on record types for Lead and Opportunity.*
-- *Consider use of metadata to manage expected audit days based on criteria.*
-- *Use schedule and batch to manage alerts.*
-
-
-## 1. Overview
+## Overview
 
 Design and implement a scalable solution to record audit events for any sales-related object (e.g., Lead, Opportunity, Quote, Order) in Salesforce.  
-The system will support automation, alerting, and future expansion to new sales objects.
+The system supports automation, alerting, and future expansion to new sales objects with custom metadata for admin flexibility and minimal code changes.
 
 ---
 
-## 2. Object and Fields to Create
+## Objects & Fields
 
-### **Generic Custom Object: Audit__c**
+### **Audit__c (Custom Object)**
 
 | Field Name                  | Data Type                   | Description |
 |-----------------------------|-----------------------------|-------------|
-| Parent_Type__c              | Picklist                    | Parent object type (Lead, Opportunity, Quote, Order, etc.) |
-| Parent_Lead__c              | Lookup (Lead)               | Reference to Lead (if Parent_Type__c = Lead) |
-| Parent_Opportunity__c       | Lookup (Opportunity)        | Reference to Opportunity (if Parent_Type__c = Opportunity) |
+| Parent_Type__c              | Picklist                    | Parent object type (Lead, Opportunity, etc.) |
+| Parent_Lead__c              | Lookup (Lead)               | Reference to Lead |
+| Parent_Opportunity__c       | Lookup (Opportunity)        | Reference to Opportunity |
+| Opportunity_Stage__c        | Text                        | Opportunity Stage value at time of audit |
+| Lead_Status__c              | Text                        | Lead Status value at time of audit |
 | Audit_Status__c             | Picklist                    | Audit status (Draft, In Progress, Completed, Overdue, Cancelled) |
 | Audit_Type__c               | Picklist                    | Audit type (Pre-Sale, During-Sale, Post-Sale, etc.) |
 | Expected_Audit_Date__c      | Date                        | Planned date for the audit |
@@ -41,7 +28,7 @@ The system will support automation, alerting, and future expansion to new sales 
 
 ---
 
-### **Junction Object: AuditParticipant__c**
+### **AuditParticipant__c (Junction Object)**
 
 | Field Name           | Data Type                 | Description                                             |
 |----------------------|--------------------------|---------------------------------------------------------|
@@ -56,97 +43,25 @@ Require that either `User__c` or `Contact__c` is populated, but not both.
 
 ---
 
-## 3. Automation Proposal
+## Automation Logic
 
-### **A. Record-Triggered Flow (Base Option)**
+### **Apex Trigger + Handler Framework**
 
-### **B. Apex Trigger + Handler Framework (Recommended)**
-**Implemented:**
 - Apex triggers and handler classes for Opportunity and Lead.
-- Handler delegates business logic to `AuditService` for maintainability and scalability.
-- Enum-based context for clear trigger event management.
-- Bulk-safe and error-handled DML operations.
+- All business logic centralized in the `AuditService` class.
+- Context managed via enum or string for clarity and maintainability.
+- Bulk-safe DML and error handling implemented.
+- Field comparison logic for updates (e.g., only create audit if StageName or Status changes).
 
-**Next Steps:**
-- Implement field comparison logic for updates (e.g., only create audit if StageName or Status changes).
-- Extend to other sales objects as needed.
-
----
-
-## 4. Alerts & Notification System
-
-- **Visual flags:** Overdue__c field highlights records needing attention.
-- **Internal Salesforce notifications:** Tasks, Chatter posts, or standard notifications for overdue audits.
-- **Email alerts:** Automated emails to owners, auditors, or managers for overdue or pending audits.
-- **Reports/Dashboards:** Unified dashboards for all audit types across all parent objects.
+**Sample Logic:**
+- When an Opportunity or Lead is created or updated, check if the Stage/Status matches an active configuration in `AuditConfig__mdt`.
+- If so, create an `Audit__c` record with all relevant info, including the Stage/Status value at the time of audit.
 
 ---
 
-## 5. Implementation Steps
+## AuditConfig__mdt: Custom Metadata Configuration
 
-### Implementation Steps (Progress)
-1. **Custom objects and fields created.**
-2. **Junction object and validation rule implemented.**
-3. **Apex Trigger Framework and handler classes for Opportunity and Lead completed.**
-4. **AuditService class centralizes business logic.**
-5. **Bulk-safe DML and error handling in place.**
-6. **Testing ongoing in dev org.**
-7. **Documentation and deployment steps to follow.**
-
----
-
-## 6. Scalability & Future-Proofing
-
-- Easily extend to new Salesforce objects (Quotes, Orders, Cases, custom sales objects) by adding new Parent_Type values and lookups.
-- Centralized reporting and logic ensure long-term maintainability.
-- Periodic review and improvement based on business evolution.
-
----
-
-## 7. Opportunity Stage Audit Analysis
-
-### **Opportunity Stages**
-- Prospecting
-- Qualification
-- Needs Analysis
-- Value Proposition
-- Id. Decision Makers
-- Perception Analysis
-- Proposal/Price Quote
-- Negotiation/Review
-- Closed Won
-- Closed Lost
-
-### **Audit-Triggering Stages: Best Practice**
-
-Most companies require audits only at critical milestones:
-| Stage                   | Why audit here?                                    |
-|-------------------------|----------------------------------------------------|
-| Qualification           | Confirm lead quality and fit.                      |
-| Proposal/Price Quote    | Ensure pricing, terms, and compliance.             |
-| Negotiation/Review      | High risk, contractual obligations, discounts.     |
-| Closed Won              | Confirm win, validate compliance and documentation.|
-| Closed Lost             | Analyze loss reasons, compliance.                  |
-
-**Sometimes audited:**  
-- Needs Analysis (for complex, regulated sales)
-- Value Proposition (if highly customized solution)
-
-**Rarely audited:**  
-- Prospecting, Perception Analysis, Id. Decision Makers, Value Proposition (unless required by industry regulations).
-
-### **Implementation Recommendation**
-
-- Focus audits on: Qualification, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost.
-- Make the audit stages configurable via custom metadata or settings for future flexibility.
-
----
-
-## 8. AuditConfig__mdt: Custom Metadata Configuration
-
-This section documents the configuration of the `AuditConfig__mdt` Custom Metadata Type, used to manage audit rules for Opportunities and Leads via admin configuration—no code changes required.
-
----
+Manages audit rules for Opportunities and Leads via admin configuration—no code changes required.
 
 ### **Fields**
 
@@ -161,8 +76,6 @@ This section documents the configuration of the `AuditConfig__mdt` Custom Metada
 | **IsActive__c**          | Checkbox  | true, false                                                                   |
 | **Comments__c**          | TextArea  | Admin notes, description, etc.                                                |
 
----
-
 ### **Preconfigured Records**
 
 | ObjectType__c | OpportunityStage__c      | LeadStatus__c          | AuditType__c | RecordTypeApiName__c | ExpectedAuditDays__c | IsActive__c | Comments__c                      |
@@ -175,18 +88,108 @@ This section documents the configuration of the `AuditConfig__mdt` Custom Metada
 | Lead          | *(blank)*               | Working - Contacted    | Pre-Sale     | Lead_Audit           | 10                  | true        | Audit for Working - Contacted    |
 | Lead          | *(blank)*               | Closed - Not Converted | Pre-Sale     | Lead_Audit           | 10                  | true        | Audit for Closed - Not Converted |
 
----
-
-### **Notes**
+**Notes:**
 - For Opportunity records, **OpportunityStage__c** is filled and **LeadStatus__c** is left blank.
 - For Lead records, **LeadStatus__c** is filled and **OpportunityStage__c** is left blank.
 - Expand by adding more records as your business process grows.
 
+**Permissions:**  
+Any user with the Customize Application permission can edit the values of these metadata records.  
+Changes made in your org will not be overwritten by managed package upgrades.
+
 ---
 
-### **Permissions**
+## Example AuditService Implementation
 
-> **Any user with the Customize Application permission** can edit the values of these metadata records.  
-> Changes made in your org will not be overwritten by managed package upgrades.
+```apex
+public with sharing class AuditService {
+    // Retrieve AuditConfig__mdt for given object type and stage/status
+    private AuditConfig__mdt getAuditConfig(String objectType, String stageOrStatus) {
+        List<AuditConfig__mdt> configs;
+        if (objectType == 'Opportunity') {
+            configs = [SELECT Id, AuditType__c, ExpectedAuditDays__c 
+                        FROM AuditConfig__mdt 
+                        WHERE ObjectType__c = :objectType AND OpportunityStage__c = :stageOrStatus AND IsActive__c = true
+                        LIMIT 1];
+        } else if (objectType == 'Lead') {
+            configs = [SELECT Id, AuditType__c, ExpectedAuditDays__c 
+                        FROM AuditConfig__mdt 
+                        WHERE ObjectType__c = :objectType AND LeadStatus__c = :stageOrStatus AND IsActive__c = true
+                        LIMIT 1];
+        }
+        return configs.isEmpty() ? null : configs[0];
+    }
+
+    // Insert audits in bulk
+    private void insertAudits(List<Audit__c> auditsToInsert) {
+        if (!Schema.sObjectType.Audit__c.isCreateable()) return;
+        try { insert auditsToInsert; } catch (Exception e) { System.debug('Error inserting audits: ' + e.getMessage()); }
+    }
+
+    // Detect field changes and create audits accordingly
+    public void detectFieldChangeAndAudit(Map<Id, SObject> newRecordsMap, Map<Id, SObject> oldRecordsMap, String fieldName, String objectType) {
+        List<Audit__c> auditsToInsert = new List<Audit__c>();
+        for (SObject newRecord : newRecordsMap.values()) {
+            SObject oldRecord = oldRecordsMap != null ? oldRecordsMap.get((Id)newRecord.get('Id')) : null;
+            if (oldRecord != null) {
+                Object newValue = newRecord.get(fieldName);
+                Object oldValue = oldRecord.get(fieldName);
+                AuditConfig__mdt config = getAuditConfig(objectType, String.valueOf(newValue));
+                if (config != null && newValue != oldValue) {
+                    Audit__c audit = new Audit__c();
+                    audit.Parent_Type__c = objectType;
+                    audit.Audit_Status__c = 'Draft';
+                    audit.Expected_Audit_Date__c = Date.today().addDays((Integer)config.ExpectedAuditDays__c);
+                    audit.Comments__c = objectType + ' ' + fieldName +
+                        ' changed from "' + oldValue + '" to "' + newValue + '"';
+                    audit.Audit_Type__c = config.AuditType__c;
+                    if (objectType == 'Opportunity') {
+                        audit.Parent_Opportunity__c = (Id)newRecord.get('Id');
+                        audit.Opportunity_Stage__c = String.valueOf(newValue);
+                    } else if (objectType == 'Lead') {
+                        audit.Parent_Lead__c = (Id)newRecord.get('Id');
+                        audit.Lead_Status__c = String.valueOf(newValue);
+                    }
+                    auditsToInsert.add(audit);
+                }
+            }
+        }
+        insertAudits(auditsToInsert);
+    }
+}
+```
+
+---
+
+## Test Scenarios
+
+**Audits Created:**
+- Opportunity changes StageName to "Qualification" → Audit created (config exists & active).
+- Opportunity changes StageName to "Closed Won" → Audit created.
+- Lead changes Status to "Working - Contacted" → Audit created.
+- Lead changes Status to "Closed - Not Converted" → Audit created.
+
+**Audits NOT Created:**
+- Opportunity changes StageName to "Prospecting" (not in metadata).
+- Opportunity changes StageName to "Qualification" but config inactive.
+- Lead changes Status to "Qualified" (not in metadata).
+- Update with no actual change (StageName or Status stays the same).
+
+---
+
+## Alerts & Notification System (future scope)
+
+- Overdue__c field highlights records needing attention.
+- Notifications for overdue/pending audits.
+- Automated emails to owners, auditors, or managers.
+- Dashboards for all audit types across all parent objects.
+
+---
+
+## Scalability & Future-Proofing
+
+- Extendable to new Salesforce objects by adding Parent_Type values and metadata records.
+- Centralized reporting and logic ensure long-term maintainability.
+- Easily configurable by admin—no code changes needed for new audit rules.
 
 ---
