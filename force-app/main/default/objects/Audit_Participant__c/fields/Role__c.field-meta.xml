@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Role__c</fullName>
+    <description>each record should reference either a User or a Contact, but not both. This keeps the relationship clear and prevents confusion about the participant’s identity.
+
+Validation rule:
+
+Require that one and only one of the two fields is populated per record.
+This ensures every participant is either an internal user or an external contact, but never both.</description>
+    <inlineHelpText>each record should reference either a User or a Contact, but not both. This keeps the relationship clear and prevents confusion about the participant’s identity.</inlineHelpText>
+    <label>Role</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Auditor</fullName>
+                <default>false</default>
+                <label>Auditor</label>
+            </value>
+            <value>
+                <fullName>Stakeholder</fullName>
+                <default>false</default>
+                <label>Stakeholder</label>
+            </value>
+            <value>
+                <fullName>Client</fullName>
+                <default>false</default>
+                <label>Client</label>
+            </value>
+            <value>
+                <fullName>Reviewer</fullName>
+                <default>false</default>
+                <label>Reviewer</label>
+            </value>
+            <value>
+                <fullName>Owner</fullName>
+                <default>false</default>
+                <label>Owner</label>
+            </value>
+            <value>
+                <fullName>Observer</fullName>
+                <default>false</default>
+                <label>Observer</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

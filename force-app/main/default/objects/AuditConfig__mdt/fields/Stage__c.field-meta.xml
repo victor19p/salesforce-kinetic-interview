@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Stage__c</fullName>
+    <description>Just for Opportunities</description>
+    <fieldManageability>SubscriberControlled</fieldManageability>
+    <label>Stage</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Qualification</fullName>
+                <default>true</default>
+                <label>Qualification</label>
+            </value>
+            <value>
+                <fullName>Proposal/Price Quote</fullName>
+                <default>false</default>
+                <label>Proposal/Price Quote</label>
+            </value>
+            <value>
+                <fullName>Negotiation/Review</fullName>
+                <default>false</default>
+                <label>Negotiation/Review</label>
+            </value>
+            <value>
+                <fullName>Closed Won</fullName>
+                <default>false</default>
+                <label>Closed Won</label>
+            </value>
+            <value>
+                <fullName>Closed Lost</fullName>
+                <default>false</default>
+                <label>Closed Lost</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

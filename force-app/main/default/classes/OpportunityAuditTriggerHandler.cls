@@ -26,8 +26,8 @@ public without sharing class OpportunityAuditTriggerHandler extends TriggerHandl
         AuditService auditService = new AuditService();
         auditService.createAuditForOpportunity(newRecordsMap, oldRecordsMap, 'AFTER_INSERT');
 
-        AuditParticipantService auditParticipantService = new AuditParticipantService();
-        auditParticipantService.createAuditParticipantForOpportunity(newRecordsMap, oldRecordsMap, 'AFTER_INSERT');
+        // AuditParticipantService auditParticipantService = new AuditParticipantService();
+        // auditParticipantService.createAuditParticipantForOpportunity(newRecordsMap, oldRecordsMap, 'AFTER_INSERT');
 
         TriggerHandler.clearBypass('OpportunityAuditTriggerHandler');
     }
@@ -38,8 +38,8 @@ public without sharing class OpportunityAuditTriggerHandler extends TriggerHandl
         AuditService auditService = new AuditService();
         auditService.createAuditForOpportunity(newRecordsMap, oldRecordsMap, 'AFTER_UPDATE');
 
-        AuditParticipantService auditParticipantService = new AuditParticipantService();
-        auditParticipantService.createAuditParticipantForOpportunity(newRecordsMap, oldRecordsMap, 'AFTER_UPDATE');
+        // AuditParticipantService auditParticipantService = new AuditParticipantService();
+        // auditParticipantService.createAuditParticipantForOpportunity(newRecordsMap, oldRecordsMap, 'AFTER_UPDATE');
 
         TriggerHandler.clearBypass('OpportunityAuditTriggerHandler');
     }

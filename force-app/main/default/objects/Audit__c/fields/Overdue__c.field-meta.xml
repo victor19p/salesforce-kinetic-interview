@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Overdue__c</fullName>
+    <description>NOT(ISBLANK(Expected_Audit_Date__c)): just apply if there is some date
+TODAY() &gt; Expected_Audit_Date__c: today is greater than expected
+NOT(ISPICKVAL(Audit_Status__c, &quot;Completed&quot;)): audit still on process
+NOT(ISPICKVAL(Audit_Status__c, &quot;Cancelled&quot;)): audit not cancelled</description>
+    <formula>AND(
+    NOT(ISBLANK(Expected_Audit_Date__c)),
+    TODAY() &gt; Expected_Audit_Date__c,
+    NOT(ISPICKVAL(Audit_Status__c, &quot;Completed&quot;)),
+    NOT(ISPICKVAL(Audit_Status__c, &quot;Cancelled&quot;))
+)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Overdue</label>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

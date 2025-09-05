@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Opportunity - Negotiation/Review</label>
+    <protected>false</protected>
+    <values>
+        <field>AuditType__c</field>
+        <value xsi:type="xsd:string">During-Sale</value>
+    </values>
+    <values>
+        <field>Comments__c</field>
+        <value xsi:type="xsd:string">Audit for Negotiation/Review</value>
+    </values>
+    <values>
+        <field>ExpectedAuditDays__c</field>
+        <value xsi:type="xsd:double">7.0</value>
+    </values>
+    <values>
+        <field>IsActive__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>ObjectType__c</field>
+        <value xsi:type="xsd:string">Opportunity</value>
+    </values>
+    <values>
+        <field>RecordTypeApiName__c</field>
+        <value xsi:type="xsd:string">Opportunity_Audit</value>
+    </values>
+    <values>
+        <field>Stage__c</field>
+        <value xsi:type="xsd:string">Negotiation/Review</value>
+    </values>
+    <values>
+        <field>Status__c</field>
+        <value xsi:nil="true"/>
+    </values>
+</CustomMetadata>

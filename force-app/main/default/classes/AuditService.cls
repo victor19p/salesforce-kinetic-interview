@@ -65,6 +65,10 @@ public with sharing class AuditService {
         try {
             insert auditsToInsert;
             // System.debug(LoggingLevel.INFO, 'Audits created: ' + JSON.serializePretty(auditsToInsert));
+            //TODO in here call the AuditParticipantService to create participants for each audit created
+            AuditParticipantService auditParticipantService = new AuditParticipantService();
+            auditParticipantService.processAuditParticipants(auditsToInsert);
+            
         } catch (Exception e) {
             System.debug(LoggingLevel.ERROR, 'auditsToInsert: ' + JSON.serializePretty(auditsToInsert));
             System.debug(LoggingLevel.ERROR, 'Error inserting audits: ' + e.getMessage());
@@ -170,4 +174,3 @@ public with sharing class AuditService {
     }
 
 }
-
