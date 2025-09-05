@@ -4,6 +4,7 @@
  * @since 2021
  * @group SampleTriggerHandler
  * @group-content doc-assets/files/sampletriggerhandlerhome.html
+ * https://github.com/dschach/salesforce-trigger-framework
  */
 public without sharing class AccountSampleTriggerHandler extends TriggerHandler {
 	private List<Account> newRecords;
