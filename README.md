@@ -1,5 +1,20 @@
 # Action Plan: Scalable Audit Trail for Sales Process in Salesforce
 
+## Current Implementation Progress
+
+- Custom objects `Audit__c` and `AuditParticipant__c` created with required fields and validation rule.
+- Apex Trigger Framework implemented for Opportunity and Lead using handler classes (`OpportunityAuditTriggerHandler`, `LeadAuditTriggerHandler`).
+- Centralized business logic in `AuditService` class, supporting both Opportunity and Lead audits.
+- Context managed via enum (`AuditContext`) for clarity and maintainability.
+- Bulk-safe DML and error handling implemented in service layer.
+- Ready for field comparison logic and further enhancements.
+
+### AuditService - Future Enhancements (*if time allows*)
+- *Consider the audit object on record types for Lead and Opportunity.*
+- *Consider use of metadata to manage expected audit days based on criteria.*
+- *Use schedule and batch to manage alerts.*
+
+
 ## 1. Overview
 
 Design and implement a scalable solution to record audit events for any sales-related object (e.g., Lead, Opportunity, Quote, Order) in Salesforce.  
@@ -44,16 +59,17 @@ Require that either `User__c` or `Contact__c` is populated, but not both.
 ## 3. Automation Proposal
 
 ### **A. Record-Triggered Flow (Base Option)**
-- Configure a Flow triggered by status/stage changes in Lead, Opportunity, Quote, or Order.
-- Flow creates an Audit__c record, populates Parent_Type, fills the correct lookup, and associates participants via AuditParticipant__c.
-- **Pros:** Admin-friendly, quick to deploy.
-- **Cons:** Limited for complex bulk operations or advanced logic.
 
 ### **B. Apex Trigger + Handler Framework (Recommended)**
-- Develop Apex triggers on relevant objects (Lead, Opportunity, etc.) for key field changes.
-- Handler logic processes events, creates Audit__c records, populates fields, links participants.
-- **Pros:** High scalability and flexibility, robust error handling.
-- **Cons:** Requires development and testing.
+**Implemented:**
+- Apex triggers and handler classes for Opportunity and Lead.
+- Handler delegates business logic to `AuditService` for maintainability and scalability.
+- Enum-based context for clear trigger event management.
+- Bulk-safe and error-handled DML operations.
+
+**Next Steps:**
+- Implement field comparison logic for updates (e.g., only create audit if StageName or Status changes).
+- Extend to other sales objects as needed.
 
 ---
 
@@ -68,21 +84,14 @@ Require that either `User__c` or `Contact__c` is populated, but not both.
 
 ## 5. Implementation Steps
 
-1. **Design and create the generic Audit__c object and fields.**
-2. **Create the AuditParticipant__c junction object with validation rule.**
-3. **Build automation:**
-   - Implement Record-Triggered Flows and/or Apex Trigger logic.
-   - Ensure logic supports multiple parent types.
-4. **Configure alerts and notifications:**
-   - Formula fields, email templates, notification rules.
-   - Build reports and dashboards for audit status tracking.
-5. **Testing:**
-   - Validate in sandbox/dev org with various scenarios and parent objects.
-6. **Training & documentation:**
-   - Prepare user/admin guides and training materials.
-7. **Deployment & monitoring:**
-   - Roll out in production.
-   - Monitor for performance and user feedback.
+### Implementation Steps (Progress)
+1. **Custom objects and fields created.**
+2. **Junction object and validation rule implemented.**
+3. **Apex Trigger Framework and handler classes for Opportunity and Lead completed.**
+4. **AuditService class centralizes business logic.**
+5. **Bulk-safe DML and error handling in place.**
+6. **Testing ongoing in dev org.**
+7. **Documentation and deployment steps to follow.**
 
 ---
 
@@ -91,3 +100,44 @@ Require that either `User__c` or `Contact__c` is populated, but not both.
 - Easily extend to new Salesforce objects (Quotes, Orders, Cases, custom sales objects) by adding new Parent_Type values and lookups.
 - Centralized reporting and logic ensure long-term maintainability.
 - Periodic review and improvement based on business evolution.
+
+---
+
+## 7. Opportunity Stage Audit Analysis
+
+### **Opportunity Stages**
+- Prospecting
+- Qualification
+- Needs Analysis
+- Value Proposition
+- Id. Decision Makers
+- Perception Analysis
+- Proposal/Price Quote
+- Negotiation/Review
+- Closed Won
+- Closed Lost
+
+### **Audit-Triggering Stages: Best Practice**
+
+Most companies require audits only at critical milestones:
+| Stage                   | Why audit here?                                    |
+|-------------------------|----------------------------------------------------|
+| Qualification           | Confirm lead quality and fit.                      |
+| Proposal/Price Quote    | Ensure pricing, terms, and compliance.             |
+| Negotiation/Review      | High risk, contractual obligations, discounts.     |
+| Closed Won              | Confirm win, validate compliance and documentation.|
+| Closed Lost             | Analyze loss reasons, compliance.                  |
+
+**Sometimes audited:**  
+- Needs Analysis (for complex, regulated sales)
+- Value Proposition (if highly customized solution)
+
+**Rarely audited:**  
+- Prospecting, Perception Analysis, Id. Decision Makers, Value Proposition (unless required by industry regulations).
+
+### **Implementation Recommendation**
+
+- Focus audits on: Qualification, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost.
+- Make the audit stages configurable via custom metadata or settings for future flexibility.
+
+---

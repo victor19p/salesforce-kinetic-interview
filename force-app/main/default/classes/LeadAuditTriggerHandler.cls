@@ -24,7 +24,7 @@ public without sharing class LeadAuditTriggerHandler extends TriggerHandler {
         TriggerHandler.bypass('LeadAuditTriggerHandler');
 
         AuditService auditService = new AuditService();
-        auditService.createAuditForLead(newRecordsMap, null, 'afterInsert');
+        auditService.createAuditForLead(newRecordsMap, oldRecordsMap, 'AFTER_INSERT');
 
         TriggerHandler.clearAllBypasses();
     }
@@ -33,7 +33,7 @@ public without sharing class LeadAuditTriggerHandler extends TriggerHandler {
         TriggerHandler.bypass('LeadAuditTriggerHandler');
 
         AuditService auditService = new AuditService();
-        auditService.createAuditForLead(newRecordsMap, oldRecordsMap, 'afterUpdate');
+        auditService.createAuditForLead(newRecordsMap, oldRecordsMap, 'AFTER_UPDATE');
 
         TriggerHandler.clearBypass('LeadAuditTriggerHandler');
     }

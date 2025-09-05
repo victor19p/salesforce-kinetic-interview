@@ -24,7 +24,7 @@ public without sharing class OpportunityAuditTriggerHandler extends TriggerHandl
         TriggerHandler.bypass('OpportunityAuditTriggerHandler');
 
         AuditService auditService = new AuditService();
-        auditService.createAuditForOpportunity(newRecordsMap, null, 'afterInsert');
+        auditService.createAuditForOpportunity(newRecordsMap, oldRecordsMap, 'AFTER_INSERT');
 
         TriggerHandler.clearBypass('OpportunityAuditTriggerHandler');
     }
@@ -33,7 +33,7 @@ public without sharing class OpportunityAuditTriggerHandler extends TriggerHandl
         TriggerHandler.bypass('OpportunityAuditTriggerHandler');
 
         AuditService auditService = new AuditService();
-        auditService.createAuditForOpportunity(newRecordsMap, oldRecordsMap, 'afterUpdate');
+        auditService.createAuditForOpportunity(newRecordsMap, oldRecordsMap, 'AFTER_UPDATE');
 
         TriggerHandler.clearBypass('OpportunityAuditTriggerHandler');
     }
