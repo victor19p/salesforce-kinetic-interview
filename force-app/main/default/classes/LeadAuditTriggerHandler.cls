@@ -21,17 +21,19 @@ public without sharing class LeadAuditTriggerHandler extends TriggerHandler {
     }
 
     public override void afterInsert() {
-        // Implement logic for after insert
-        System.debug(LoggingLevel.INFO, 'Lead inserted: ' + newRecords);
         TriggerHandler.bypass('LeadAuditTriggerHandler');
 
-        TriggerHandler.clearBypass('LeadAuditTriggerHandler');
+        AuditService auditService = new AuditService();
+        auditService.createAuditForLead(newRecordsMap, null, 'afterInsert');
+
+        TriggerHandler.clearAllBypasses();
     }
 
     public override void afterUpdate() {
-        // Implement logic for after update
-        System.debug(LoggingLevel.INFO, 'Lead updated: ' + oldRecords);
         TriggerHandler.bypass('LeadAuditTriggerHandler');
+
+        AuditService auditService = new AuditService();
+        auditService.createAuditForLead(newRecordsMap, oldRecordsMap, 'afterUpdate');
 
         TriggerHandler.clearBypass('LeadAuditTriggerHandler');
     }
