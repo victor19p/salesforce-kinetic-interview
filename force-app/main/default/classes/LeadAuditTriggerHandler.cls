@@ -13,6 +13,7 @@ public without sharing class LeadAuditTriggerHandler extends TriggerHandler {
     private Map<Id, Lead> oldRecordsMap;
 
     public LeadAuditTriggerHandler(String className) {
+        super('LeadAuditTriggerHandler');
         this.newRecords = (List<Lead>) Trigger.new;
         this.oldRecords = (List<Lead>) Trigger.old;
         this.newRecordsMap = (Map<Id, Lead>) Trigger.newMap;
@@ -22,10 +23,16 @@ public without sharing class LeadAuditTriggerHandler extends TriggerHandler {
     public override void afterInsert() {
         // Implement logic for after insert
         System.debug(LoggingLevel.INFO, 'Lead inserted: ' + newRecords);
+        TriggerHandler.bypass('LeadAuditTriggerHandler');
+
+        TriggerHandler.clearBypass('LeadAuditTriggerHandler');
     }
 
     public override void afterUpdate() {
         // Implement logic for after update
         System.debug(LoggingLevel.INFO, 'Lead updated: ' + oldRecords);
+        TriggerHandler.bypass('LeadAuditTriggerHandler');
+
+        TriggerHandler.clearBypass('LeadAuditTriggerHandler');
     }
 }

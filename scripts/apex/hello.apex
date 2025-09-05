@@ -5,6 +5,16 @@
 // You can also execute the entire file by running the command:
 //     SFDX: Execute Anonymous Apex with Editor Contents
 
-string tempvar = 'Enter_your_name_here';
-System.debug('Hello World!');
-System.debug('My name is ' + tempvar);
+// Crear una nueva oportunidad
+Opportunity opp = new Opportunity(
+    Name = 'Test Audit Opportunity',
+    StageName = 'Prospecting',
+    CloseDate = Date.today().addDays(30)
+);
+insert opp;
+System.debug('Oportunidad creada: ' + opp.Id);
+
+// Actualizar la oportunidad (por ejemplo, cambiar StageName)
+opp.StageName = 'Closed Won';
+update opp;
+System.debug('Oportunidad actualizada: ' + opp.Id);
