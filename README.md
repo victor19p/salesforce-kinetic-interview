@@ -141,3 +141,52 @@ Most companies require audits only at critical milestones:
 - Make the audit stages configurable via custom metadata or settings for future flexibility.
 
 ---
+
+## 8. AuditConfig__mdt: Custom Metadata Configuration
+
+This section documents the configuration of the `AuditConfig__mdt` Custom Metadata Type, used to manage audit rules for Opportunities and Leads via admin configuration—no code changes required.
+
+---
+
+### **Fields**
+
+| Field API Name           | Type      | Picklist Options / Description                                                 |
+|------------------------- |---------- |-------------------------------------------------------------------------------|
+| **ObjectType__c**        | Picklist  | Opportunity, Lead                                                             |
+| **OpportunityStage__c**  | Picklist  | Qualification, Proposal/Price Quote, Negotiation/Review, Closed Won, Closed Lost |
+| **LeadStatus__c**        | Picklist  | Working - Contacted, Closed - Not Converted                                   |
+| **AuditType__c**         | Picklist  | Pre-Sale, During-Sale, Post-Sale                                              |
+| **RecordTypeApiName__c** | Picklist  | Opportunity_Audit, Lead_Audit                                                 |
+| **ExpectedAuditDays__c** | Number    | Number of days for expected audit (e.g., 5, 7, 10)                            |
+| **IsActive__c**          | Checkbox  | true, false                                                                   |
+| **Comments__c**          | TextArea  | Admin notes, description, etc.                                                |
+
+---
+
+### **Preconfigured Records**
+
+| ObjectType__c | OpportunityStage__c      | LeadStatus__c          | AuditType__c | RecordTypeApiName__c | ExpectedAuditDays__c | IsActive__c | Comments__c                      |
+|---------------|-------------------------|------------------------|--------------|----------------------|---------------------|-------------|----------------------------------|
+| Opportunity   | Qualification           | *(blank)*              | During-Sale  | Opportunity_Audit    | 7                   | true        | Audit for Qualification stage    |
+| Opportunity   | Proposal/Price Quote    | *(blank)*              | During-Sale  | Opportunity_Audit    | 7                   | true        | Audit for Proposal/Price Quote   |
+| Opportunity   | Negotiation/Review      | *(blank)*              | During-Sale  | Opportunity_Audit    | 7                   | true        | Audit for Negotiation/Review     |
+| Opportunity   | Closed Won              | *(blank)*              | Post-Sale    | Opportunity_Audit    | 5                   | true        | Audit for Closed Won             |
+| Opportunity   | Closed Lost             | *(blank)*              | Post-Sale    | Opportunity_Audit    | 5                   | true        | Audit for Closed Lost            |
+| Lead          | *(blank)*               | Working - Contacted    | Pre-Sale     | Lead_Audit           | 10                  | true        | Audit for Working - Contacted    |
+| Lead          | *(blank)*               | Closed - Not Converted | Pre-Sale     | Lead_Audit           | 10                  | true        | Audit for Closed - Not Converted |
+
+---
+
+### **Notes**
+- For Opportunity records, **OpportunityStage__c** is filled and **LeadStatus__c** is left blank.
+- For Lead records, **LeadStatus__c** is filled and **OpportunityStage__c** is left blank.
+- Expand by adding more records as your business process grows.
+
+---
+
+### **Permissions**
+
+> **Any user with the Customize Application permission** can edit the values of these metadata records.  
+> Changes made in your org will not be overwritten by managed package upgrades.
+
+---

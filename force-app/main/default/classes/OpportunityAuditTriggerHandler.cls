@@ -42,18 +42,3 @@ public without sharing class OpportunityAuditTriggerHandler extends TriggerHandl
         TriggerHandler.clearBypass('OpportunityAuditTriggerHandler');
     }
 }
-
-
-// ! Test Loop Recursive on trigger
-// Opportunity opp = new Opportunity(
-//     Name = 'Test Audit Opportunity',
-//     StageName = 'Prospecting',
-//     CloseDate = Date.today().addDays(30)
-// );
-// insert opp;
-// System.debug('Oportunidad creada inside: ' + opp.Id);
-
-// // Actualizar la oportunidad (por ejemplo, cambiar StageName)
-// opp.StageName = 'Closed Won';
-// update opp;
-// System.debug('Oportunidad actualizada inside: ' + opp.Id);
