@@ -4,9 +4,19 @@
  * @since 2025
  * 
  * !notes:
- * ? consider the audit object on record types for Lead and Opportunity
- * ? consider use metadata to manage the expected audit days based on criteria
- * ? use schedule and batch to manage the alerts
+ * ? Consider the audit object on record types for Lead and Opportunity.
+ * ? Consider managing Record Types for Audit__c, dividing by related object (Lead, Opportunity, etc.) for layout and process flexibility.
+ * ? Consider use metadata to manage the expected audit days based on criteria.
+ * ? Use schedule and batch to manage the alerts.
+ * ? Consider managing Record Types for AuditParticipant__c (to support multiple participant profiles, e.g. Internal Auditor, External Client, Manager, etc.).
+ * 
+ * TODO
+ * - Move audit config (stages, statuses, expected days) to Custom Metadata for admin flexibility.
+ * - Add unit tests for service and handlers to ensure reliability as requirements evolve.
+ * - Document trigger logic and service methods for future maintainers.
+ * - Apply record type logic for AuditParticipant__c, assigning appropriate type based on context or participant role.
+ * - If expanding to more objects, keep the service generic and leverage polymorphism or interfaces if needed.
+ * - Build scheduled/batch jobs for overdue audits and notifications.
  */
 
 public with sharing class AuditService {
