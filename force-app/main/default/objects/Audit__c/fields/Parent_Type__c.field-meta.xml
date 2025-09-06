@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Parent_Type__c</fullName>
+    <description>Parent object type (Lead, Opportunity, Quote, Order, etc.)</description>
+    <inlineHelpText>Parent object type (Lead, Opportunity, Quote, Order, etc.)</inlineHelpText>
+    <label>Parent Type</label>
+    <required>true</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Lead</fullName>
+                <default>true</default>
+                <label>Lead</label>
+            </value>
+            <value>
+                <fullName>Opportunity</fullName>
+                <default>false</default>
+                <label>Opportunity</label>
+            </value>
+            <value>
+                <fullName>Quote</fullName>
+                <default>false</default>
+                <label>Quote</label>
+            </value>
+            <value>
+                <fullName>Sales Order</fullName>
+                <default>false</default>
+                <label>Sales Order</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

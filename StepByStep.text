@@ -1,0 +1,73 @@
+Kinetic Salesforce Developer Skills Interview Assignment 
+ 
+ 
+Scenario 
+ 
+Currently, our colleagues perform sales audits (i.e., Opportunity closure audits) manually, and 
+they are not being tracked consistently. The team would like to change that and begin tracking 
+audits directly in Salesforce. 
+The goals are: 
+●  Provide visibility into where audits are within their lifecycle and who is involved with 
+them. 
+●  Support multiple audits running at the same time (pre-sale, during-sale, post-sale). 
+●  Allow more than one contact to be associated with an audit. 
+●  Flag opportunities that are past their expected audit date but still labeled as active, so 
+the team can take timely action. 
+Your Task 
+Please document a proposed solution (in PowerPoint, Word, PDF, etc.) that covers the process 
+from design through support. 
+Guidelines 
+●  Screenshots or builds in Salesforce are not required. However, if you’d like to use an 
+independent dev org to illustrate your design, you’re welcome to. 
+●  Your presentation should cover: 
+○  Proposed Implementation: Walk through your solution and the estimated 
+turnaround time. 
+○  Tools & Approach: Why did you choose the tools/approach you did? What 
+benefits does it bring to the implementation? 
+○  Scalability, Testing & Deployment: Be prepared to answer Q&A about how your 
+solution can scale, be tested, and deployed. 
+ 
+ 
+
+1. solicitar dev org
+2. update page layout
+3. add trigger framework
+4. add test class for framework
+5. create Audit object
+ fields:
+    Parent_Type__c	Picklist	Parent object type (Lead, Opportunity, Quote, Order, etc.)
+    Parent_Lead__c	Lookup (Lead)	Reference to Lead (if Parent_Type__c = Lead)
+    Parent_Opportunity__c	Lookup (Opportunity)	Reference to Opportunity (if Parent_Type__c = Opportunity)
+    Audit_Status__c	Picklist	Audit status (Draft, In Progress, Completed, Overdue, Cancelled)
+    Audit_Type__c	Picklist	Audit type (Pre-Sale, During-Sale, Post-Sale, etc.)
+    Expected_Audit_Date__c	Date	Planned date for the audit
+    Actual_Audit_Date__c	Date	Date the audit was performed
+    Comments__c	Long Text	Notes and observations
+    Overdue__c	Formula/Checkbox	Indicates if the audit is overdue
+    Original_Owner__c	Lookup (User)	Original owner of the parent record
+
+6. create audit participant record
+ fields:
+    Audit__c	Lookup (Audit)	Reference to the Audit record
+    Contact__c	Lookup (Contact)	Reference to the Contact (external participant)
+    User__c	Lookup (User)	Reference to the User (internal participant)
+    Role__c	Picklist	Role in the audit (Auditor, Stakeholder, Client, etc.)
+    Comments__c	Long Text	Optional notes
+
+7. review page layouts of the new objects
+
+8. create OpportunityAuditTriggerHandler
+
+9. create OpportunityAuditTrigger
+
+10. create LeadAuditTriggerHandler
+
+11. create LeadAuditTrigger
+
+12. create metadata
+
+13. create record types for audit
+
+14. create auditService class
+
+15. create audit participant service class
