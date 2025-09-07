@@ -1,44 +1,52 @@
-# Sales Audit Tracking Solution
-## Complete Implementation Documentation
+Kinetic Salesforce Audit Tracking Solution
+
+# Proposed Implementation
+
+We designed a scalable, bulkified solution to automate and track sales audits for Opportunities and Leads in Salesforce. The system consists of:
+
+- **Audit__c Object**: Custom object to record audit events, including type, status, expected audit date, and related Opportunity or Lead.
+- **Audit_Participant__c Junction Object**: Links audits to multiple participants (Contacts, Users), supporting the requirement for more than one contact per audit.
+- **Trigger Framework**: Utilizes a base `TriggerHandler` class for bulk-safe trigger logic, with specific handlers for Opportunity and Lead (`OpportunityAuditTriggerHandler`, `LeadAuditTriggerHandler`).
+- **Service Layer**: Centralized business logic in `AuditService` and `AuditParticipantService` classes, ensuring maintainability and separation of concerns.
+- **AuditConfig__mdt Metadata**: Allows flexible configuration of audit types and expected audit days per stage/status, supporting future changes without code modifications.
+
+## Process Flow
+
+1. **Trigger Execution**: On insert/update of Opportunity or Lead, the respective trigger handler invokes the service layer.
+2. **Audit Creation**: `AuditService` checks the stage/status and configuration, then creates an `Audit__c` record if criteria are met.
+3. **Participant Linking**: `AuditParticipantService` links relevant users and contacts to the audit via `Audit_Participant__c`.
+4. **Bulkification**: All logic is bulk-safe, processing lists and maps to handle large data volumes efficiently.
+5. **Visibility & Alerts**: Audits are tracked with status and expected dates. Overdue audits can be flagged for action (future enhancement: scheduled jobs for notifications).
+
+## Tools & Approach
+
+- **Apex Trigger Framework**: Chosen for its proven scalability and maintainability in Salesforce orgs.
+- **Service Layer Pattern**: Centralizes logic, making it easier to test, extend, and support.
+- **Custom Metadata**: Enables admins to adjust audit rules without deployments.
+- **Junction Object**: Supports many-to-many relationships between audits and participants, fulfilling the requirement for multiple contacts per audit.
+
+### Benefits
+
+- **Scalability**: Bulk-safe design and metadata-driven configuration support growth and change.
+- **Maintainability**: Service layer and trigger framework simplify future enhancements and debugging.
+- **Flexibility**: Easily extendable to other objects or audit types.
+
+## Scalability, Testing & Deployment
+
+- **Bulk Testing**: All logic is bulkified and should be covered by unit tests simulating large data volumes.
+- **Deployment**: Follows Salesforce best practices—deploy metadata, triggers, and classes via change sets or SFDX.
+- **Extensibility**: New objects or audit types can be added by updating metadata and extending service logic.
+- **Monitoring**: Debug logs and error handling are included for troubleshooting.
 
 ---
 
-### Document Information
-- **Project**: Sales Audit Tracking Solution for Salesforce
-- **Author**: Victor Pineda
-- **Development Time**: 24 hours (calendar) / 12 hours (working time)
-- **Date**: September 2025
-- **Status**: ✅ COMPLETED - Production Ready
+## Recommendations
 
----
-
-## Table of Contents
-
-1. [Executive Summary](#executive-summary)
-2. [Solution Overview](#solution-overview)
-3. [Technical Architecture](#technical-architecture)
-4. [Business Process Documentation](#business-process-documentation)
-5. [Deployment & Testing Strategy](#deployment--testing-strategy)
-6. [Implementation Results](#implementation-results)
-7. [Future Roadmap](#future-roadmap)
-
----
-
-## Executive Summary
-
-This document presents a comprehensive sales audit tracking solution implemented in Salesforce, replacing manual audit processes with automated, configurable, and scalable audit management.
-
-### Key Achievements
-- ✅ **100% Requirement Coverage**: All specified business requirements fully implemented
-- ✅ **24-Hour Development**: Complete solution delivered in 24 calendar hours
-- ✅ **Zero Code Deployment Needed**: Admin-configurable business rules via custom metadata
-- ✅ **Enterprise-Grade Architecture**: Scalable, maintainable, and secure implementation
-- ✅ **90% Efficiency Gain**: Dramatic reduction in manual audit management effort
-
-### Business Impact
-The solution transforms sales audit management from a manual, inconsistent process to an automated, transparent, and reliable system that provides real-time visibility into audit lifecycles and participant engagement.
-
----
+- Add comprehensive unit tests for all service and handler classes.
+- Document trigger logic and service methods for future maintainers.
+- Consider scheduled/batch jobs for overdue audit notifications.
+- If expanding to more objects, keep the service generic and leverage polymorphism or interfaces.
+- Regularly review and update custom metadata for audit rules as business needs evolve.
 
 ## Solution Overview
 
@@ -425,6 +433,21 @@ Developer Org → Integration → UAT → Production
 ---
 
 ## Future Roadmap
+
+### Lead Conversion Audit Lifecycle (Recommended Enhancement)
+
+**Audit Linking on Lead Conversion:**
+- Cuando un Lead se convierte en Opportunity, actualizar el registro de auditoría del Lead:
+   - Establecer referencia al nuevo Opportunity (Parent_Opportunity__c).
+   - Opcionalmente, actualizar Audit_Status__c a "Completed" o "Converted".
+   - Agregar comentario indicando el evento de conversión.
+
+**Automation Approach:**
+- Usar un trigger en Lead (after update) para detectar `IsConverted = true`.
+- Actualizar los registros Audit__c relacionados.
+- Opcionalmente, crear una nueva auditoría de Opportunity si el stage lo requiere.
+
+Esta mejora asegura continuidad y trazabilidad de auditoría al convertir Leads, evitando registros huérfanos y manteniendo la compliance.
 
 ### Phase 2: Notification System (Optional)
 **Proposed Features**:
